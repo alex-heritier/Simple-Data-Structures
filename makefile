@@ -1,6 +1,6 @@
 
 build/cdata: lib/test.o lib/list.o lib/array.o
-	cc -g -Wall lib/test.o lib/list.o  lib/array.o -o build/cdata
+	cc -g -Wall lib/test.o lib/list.o lib/array.o -o build/cdata
 	
 lib/test.o: src/data_structures.h src/test.c
 	cc -g -Wall -c src/test.c -o lib/test.o
