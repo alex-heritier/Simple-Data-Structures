@@ -22,74 +22,93 @@
 
 #include "list.h"
 
-//	Node *list_create();
-//	info: allocates memory for a Node and returns a pointer to it
-//	return: pointer to Node
+//	struct list *list_create();
+//	info: allocates memory for a struct list and returns a pointer to it
+//	return: pointer to struct list
 
-Node *list_create()
+struct list *list_create()
 {
-	Node *list = calloc(1, sizeof(Node));
+	struct list *list = calloc(1, sizeof(struct list));
 	return list;
 }
 
-//	int list_destroy(Node *list);
-//	info: iterates through the list freeing each Node
+//	int list_destroy(struct list *list);
+//	info: iterates through the list freeing each struct list
 //	return: return 1 on success, 0 on failure
 	
-int list_destroy(Node *list)
+int list_destroy(struct list *list)
 {
 	assert(list && "list_destroy received a NULL list");
-	Node *curr = list;
-	Node *next = 0;
+	struct list *curr = list;
+	struct list *next = 0;
 	while (curr->data != NULL) {
 		next = curr->next;
 		free(curr);
 		curr = next;
 	}
-	free(curr);	//free the empty tail Node
+	free(curr);	//free the empty tail struct list
 	return 1;
 }
 
-//	int list_create(Node *list, void *data);
-//	info: 	adds the data parameter to the list and
-//			allocates a new empty Node at the tail
-//	return: 0 on Node allocation fail, 1 on success
+//	int list_fulldestroy(struct list *list);
+//	info: iterates through the list freeing each struct list and its data
+//	return:	return 1 on success, 0 on failure
+	
+int list_fulldestroy(struct list *list)
+{
+	assert(list && "list_fulldestroy received a NULL list");
+	struct list *curr = list;
+	struct list *next = 0;
+	while (curr->data != NULL) {
+		next = curr->next;
+		free(curr);
+		free(curr->data);
+		curr = next;
+	}
+	free(curr);	//free the empty tail struct list
+	return 1;
+}
 
-int list_add(Node *list, const void *data)
+//	int list_create(struct list *list, void *data);
+//	info: 	adds the data parameter to the list and
+//			allocates a new empty struct list at the tail
+//	return: 0 on struct list allocation fail, 1 on success
+
+int list_add(struct list *list, const void *data)
 {
 	assert(list && data && "list_add received bad data");
-	Node *curr = list;
-	while (curr->data != NULL) curr = curr->next;	//find tail Node
+	struct list *curr = list;
+	while (curr->data != NULL) curr = curr->next;	//find tail struct list
 	
-	curr->next = (Node *)calloc(1, sizeof(Node));
+	curr->next = (struct list *)calloc(1, sizeof(struct list));
 	if(!curr->next) return 0;	//calloc failed
 	curr->data = (void *)data;
 	return 1;
 }
 
-//	void list_show(Node *list, char *format);
-//	info:	iterates through list and prints each Node's data field using
+//	void list_show(struct list *list, char *format);
+//	info:	iterates through list and prints each struct list's data field using
 //			the given format specifier
 //	return: nothing
 	
-void list_show(const Node *list)
+void list_show(const struct list *list)
 {
-	assert(list && "list_show received a NULL Node");
-	Node *curr = (Node *)list;
+	assert(list && "list_show received a NULL struct list");
+	struct list *curr = (struct list *)list;
 	while (curr->data != NULL) {
 		printf("%s\n", curr->data);
 		curr = curr->next;
 	}
 }
 
-//	int list_size(Node *list);
-//	info: returns the number of non-empty Nodes in the list
+//	int list_size(struct list *list);
+//	info: returns the number of non-empty struct lists in the list
 //	return: number of elements in list
 	
-int list_size(const Node *list)
+int list_size(const struct list *list)
 {
 	assert(list);
-	Node *curr = (Node *)list;
+	struct list *curr = (struct list *)list;
 	int i = 0;
 	while (curr->data != NULL) {
 		i++;
@@ -98,14 +117,47 @@ int list_size(const Node *list)
 	return i;
 }
 
-//	int list_foreach(Node *list, int (action)(void *data));
+//	void *list_get(struct list *list, int index);
+//	info: returns the data of the struct list at index
+//	return: pointer to data field, NULL on failure
+	
+void *list_get(struct list *list, int index)
+{
+	assert(list);
+	if (index < 0 || index >= list_size(list)) return NULL;
+	
+	struct list *curr = list;
+	for (int i = 0; i < index; i++) {
+		curr = curr->next;
+	}
+	return curr->data;
+}
+
+//	int list_set(struct list *list, int index, void *data);
+//	info: sets the node at index's data to point to the data argument
+//	return: 1 on success, 0 if index out of bounds
+	
+int list_set(struct list *list, int index, void *data)
+{
+	assert(list && data);
+	if (index < 0 || index >= list_size(list)) return 0;
+	
+	struct list *curr = list;
+	for (int i = 0; i < index; i++) {
+		curr = curr->next;
+	}
+	curr->data = data;
+	return 1;
+}
+
+//	int list_map(struct list *list, int (action)(void *data));
 //	info: iterates over list, calling action with each element's data
 //	return: action's return value
 
-int list_foreach(Node *list, int (action)(const void *data))
+int list_map(struct list *list, int (action)(void *const data))
 {
-	assert(list && action && "list_foreach received NULL data");
-	Node *curr = list;
+	assert(list && action && "list_map received NULL data");
+	struct list *curr = list;
 	int rc = 0;
 	while (curr->data != NULL) {
 		rc = action(curr->data);
@@ -114,14 +166,14 @@ int list_foreach(Node *list, int (action)(const void *data))
 	return rc;
 }
 
-//	void *list_array(Node *list);
+//	void *list_toarray(struct list *list);
 //	info: copies the list data into an array
 //	return: returns a pointer to the array
 	
-void *list_toarray(const Node *list, const int elem_size)
+void *list_toarray(const struct list *list, const int elem_size)
 {
-	assert(list && "list_array received a NULL list");
-	Node *curr = (Node *)list;
+	assert(list && "list_toarray received a NULL list");
+	struct list *curr = (struct list *)list;
 	void *array = malloc(elem_size * list_size(list));
 	int i = 0;
 	while(curr->data != NULL) {
@@ -131,4 +183,29 @@ void *list_toarray(const Node *list, const int elem_size)
 	}
 	return array;
 }
+
+//	int list_destroy_node(struct list *list, void *data);
+//	info: 	finds the struct list with data field that matches the data argument
+//			and frees the struct list
+//	return: 1 on success, 0 if struct list not found
+	
+int list_destroy_node(struct list *list, void *data)
+{
+	assert(list && data && "list_destroy_struct list received NULL data");
+	struct list *curr = list;
+	struct list *prev = 0;
+	while (curr->data != NULL) {
+		if (curr->data == data) {
+			if (prev) {
+				prev->next = curr->next;
+			}	
+			free(curr);
+			return 1;
+		}
+		prev = curr;
+		curr = curr->next;
+	}
+	return 0;
+}
+	
 

@@ -19,20 +19,23 @@
 #ifndef LIST_H
 #define LIST_H
 
-
 #include <stdlib.h>
 
-typedef struct Node {
-	struct Node *next;
-	void *data;
-} Node;
+struct list {
+	struct list *	next;
+	void *			data;
+};
 
-Node *	list_create();
-int 	list_destroy(Node *list);
-int 	list_add(Node *list, const void *data);
-void 	list_show(const Node *list);
-int 	list_size(const Node *list);
-int 	list_foreach(Node *list, int (action)(const void *data));
-void *	list_toarray(const Node *list, const int elem_size);
+struct list *	list_create();
+int 			list_destroy(struct list *list);
+int				list_fulldestroy(struct list *list);
+int 			list_add(struct list *list, const void *data);
+//void 			list_show(const struct list *list);
+int 			list_size(const struct list *list);
+void *			list_get(struct list *list, int index);
+int				list_set(struct list *list, int index, void *data);
+int 			list_map(struct list *list, int (action)(void *const data));
+void *			list_toarray(const struct list *list, const int elem_size);
+int				list_destroy_node(struct list *list, void *data);
 
 #endif
