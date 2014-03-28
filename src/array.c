@@ -24,16 +24,130 @@ static int round_to_nearest_power(int num, int base)
 	return pow(base, exp);
 }
 
+static void fill_array(void **arr1, void **arr2, int amount)
+{
+	for (int i = 0; i < amount; i++) {
+		arr1[i] = arr2[i];
+	}
+}
+
 //	struct array *array_create(int size);
 //	info: allocates memory for a struct array of at least size
 //	return: returns pointer to newly allocated struct array memory
 	
-struct array *array_create(int amount, int data_size)
+struct array *array_create(const int amount)
 {
-	struct array *arr = (struct array *)calloc(1, sizeof(struct array));
-	arr->data_amount = amount;
-	arr->data_size = data_size;
-	arr->buffer_size = round_to_nearest_power(amount, 2);
-	arr->data = calloc(arr->buffer_size, data_size);
+	struct array *arr = calloc(1, sizeof(struct array));
+	arr->data_amount = 0;
+	arr->buffer_amount = round_to_nearest_power(amount, 2);	//round to nearest
+	arr->data = calloc(arr->buffer_amount, sizeof(void *));	//power of 2
+	
 	return arr;
 }
+
+/*
+int 			array_destroy(struct array *arr);
+int				array_fulldestroy(struct array *arr);
+int 			array_add(struct array *arr, const void *data);
+int 			array_size(const struct array *arr);
+void *			array_get(struct array *arr, int index);
+int				array_set(struct array *arr, int index, void *data);
+int 			array_map(struct array *arr, int (action)(void *const data));
+*/
+
+//frees up the array
+
+int array_destroy(struct array *arr)
+{
+	assert(arr);
+	
+	free(arr);
+	
+	return 1;
+}
+
+//frees up the data in the array and then the array itself
+
+int array_fulldestroy(struct array *arr)
+{
+	assert(arr);
+	
+	void **curr = arr->data;
+	for (int i = 0; i < arr->data_amount; i++) {
+		free(curr[i]);
+	}
+	free(arr->data);
+	free(arr);
+	
+	return 1;
+}
+
+int array_add(struct array *arr, const void *data)
+{
+	assert(arr && data && "Error: array_add bad data");
+	
+	if (arr->data_amount >= arr->buffer_amount) {
+		//allocate new larger array and copy over existing array
+		void *new_array = calloc(2 * arr->buffer_amount, sizeof(void *));
+		if (!new_array) return 0;
+		fill_array(new_array, arr->data, arr->buffer_amount);
+		free(arr->data);
+		arr->data = new_array;
+		arr->buffer_amount *= 2;
+	}
+	arr->data[arr->data_amount] = (void *)data;
+	arr->data_amount++;
+	
+	return 1;
+}
+
+int array_size(const struct array *arr)
+{
+	assert(arr);
+	
+	return arr->data_amount;
+}
+
+void *array_get(const struct array *arr, const int index)
+{
+	assert(arr);
+	
+	if (index < 0 || index >= arr->data_amount) {
+		return NULL;
+	}
+	
+	void **curr = arr->data;
+	for (int i = 0; i < index; ++i) {
+		curr++;
+	}
+	return *curr;
+}
+
+int	array_set(struct array *arr, const int index, const void *data)
+{
+	assert(arr && data);
+	
+	if (index < 0 || index >= arr->data_amount) {
+		return 0;
+	}
+	
+	void **curr = arr->data;
+	for (int i = 0; i < index; ++i) {
+		curr++;
+	}
+	*curr = data;
+	return 1;
+}
+
+int array_map(struct array *arr, int (action)(void *const data))
+{
+	assert(arr && action);
+	
+	void **curr = arr->data;
+	for (int i = 0; i < arr->data_amount; ++i) {
+		action(*curr);
+		curr++;
+	}
+	return 1;
+}
+
