@@ -4,5 +4,8 @@
 
 #include "list.h"
 #include "array.h"
+#include "stack.h"
+#include "queue.h"
+#include "map.h"
 
 #endif

@@ -31,6 +31,22 @@ static void fill_array(void **arr1, void **arr2, int amount)
 	}
 }
 
+int array_setnull(struct array *arr, const int index)
+{
+	assert(arr);
+	
+	if (index < 0 || index >= arr->data_amount) {
+		return 0;
+	}
+	
+	void **curr = arr->data;
+	for (int i = 0; i < index; ++i) {
+		curr++;
+	}
+	*curr = 0;
+	return 1;
+}
+
 //	struct array *array_create(int size);
 //	info: allocates memory for a struct array of at least size
 //	return: returns pointer to newly allocated struct array memory
@@ -108,6 +124,19 @@ int array_size(const struct array *arr)
 	return arr->data_amount;
 }
 
+int	array_indexof(const struct array *arr, const void *data, const int size)
+{
+	assert(arr && data);
+	
+	void **curr = arr->data;
+	for (int i = 0; i < array_size(arr); ++i) {
+		int is_equal = memcmp(*curr, data, size);
+		if (is_equal == 0) return i;
+		curr++;
+	}
+	return -1;
+}
+
 void *array_get(const struct array *arr, const int index)
 {
 	assert(arr);
@@ -135,7 +164,7 @@ int	array_set(struct array *arr, const int index, const void *data)
 	for (int i = 0; i < index; ++i) {
 		curr++;
 	}
-	*curr = data;
+	*curr = (void *)data;
 	return 1;
 }
 
@@ -151,3 +180,27 @@ int array_map(struct array *arr, int (action)(void *const data))
 	return 1;
 }
 
+void *array_remove(struct array *arr, const int index)
+{
+	assert(arr);
+	
+	if (index < 0 || index >= arr->data_amount) {
+		return 0;
+	}
+	
+	void *return_value = 0;
+	void **curr = arr->data;
+	for (int i = 0; i < index; ++i) {	// go to index
+		curr++;
+	}
+	// curr is now the index to delete
+	return_value = *curr;
+	for (int i = index; i < arr->data_amount; ++i) {
+		*curr = *(curr + 1);
+		curr++;
+	}
+	array_setnull(arr, arr->data_amount - 1);
+	arr->data_amount--;
+	
+	return return_value;
+}
