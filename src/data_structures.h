@@ -7,5 +7,6 @@
 #include "stack.h"
 #include "queue.h"
 #include "map.h"
+#include "tree.h"
 
 #endif

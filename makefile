@@ -1,7 +1,7 @@
 
-build/cdata: lib/test.o lib/list.o lib/array.o lib/stack.o lib/queue.o lib/map.o
+build/cdata: lib/test.o lib/list.o lib/array.o lib/stack.o lib/queue.o lib/map.o lib/tree.o
 	cc -g -Wall lib/test.o lib/list.o lib/array.o lib/stack.o \
-	lib/queue.o lib/map.o -o build/cdata
+	lib/queue.o lib/map.o lib/tree.o -o build/cdata
 	
 lib/test.o: src/data_structures.h src/test.c
 	cc -g -Wall -c src/test.c -o lib/test.o
@@ -22,6 +22,9 @@ lib/queue.o: src/queue.c src/array.c
 	
 lib/map.o: src/map.c src/array.c
 	cc -g -Wall -c src/map.c -o lib/map.o
+	
+lib/tree.o: src/tree.c
+	cc -g -Wall -c src/tree.c -o lib/tree.o
 	
 clean:
 	rm -f build/*
